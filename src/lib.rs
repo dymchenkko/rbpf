@@ -32,8 +32,6 @@ pub mod ebpf;
 pub mod helpers;
 pub mod insn_builder;
 mod asm_parser;
-#[cfg(not(windows))]
-mod jit;
 mod verifier;
 
 /// eBPF verification function that returns an error if the program does not meet its requirements.
@@ -612,35 +610,6 @@ impl<'a> EbpfVmMbuff<'a> {
         )))
     }
 
-    /// JIT-compile the loaded program. No argument required for this.
-    ///
-    /// If using helper functions, be sure to register them into the VM before calling this
-    /// function.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let prog = &[
-    ///     0x79, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, // Load mem from mbuff into R1.
-    ///     0x69, 0x10, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, // ldhx r1[2], r0
-    ///     0x95, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // exit
-    /// ];
-    ///
-    /// // Instantiate a VM.
-    /// let mut vm = rbpf::EbpfVmMbuff::new(Some(prog)).unwrap();
-    ///
-    /// vm.jit_compile();
-    /// ```
-    #[cfg(not(windows))]
-    pub fn jit_compile(&mut self) -> Result<(), Error> {
-        let prog = match self.prog { 
-            Some(prog) => prog,
-            None => Err(Error::new(ErrorKind::Other, "Error: No program set, call prog_set() to load one"))?,
-        };
-        self.jit = Some(jit::compile(prog, &self.helpers, true, false)?);
-        Ok(())
-    }
-
     /// Execute the previously JIT-compiled program, with the given packet data and metadata
     /// buffer, in a manner very similar to `execute_program()`.
     ///
@@ -985,39 +954,6 @@ impl<'a> EbpfVmFixedMbuff<'a> {
         self.parent.execute_program(mem, &self.mbuff.buffer)
     }
 
-    /// JIT-compile the loaded program. No argument required for this.
-    ///
-    /// If using helper functions, be sure to register them into the VM before calling this
-    /// function.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let prog = &[
-    ///     0xb7, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov r0, 0
-    ///     0x79, 0x12, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, // load mem from r1[0x40] to r2
-    ///     0x07, 0x02, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, // add r2, 5
-    ///     0x79, 0x11, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00, // load mem_end from r1[0x50] to r1
-    ///     0x2d, 0x12, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, // if r2 > r1 skip 3 instructions
-    ///     0x71, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // load r2 (= *(mem + 5)) into r0
-    ///     0x95, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // exit
-    /// ];
-    ///
-    /// // Instantiate a VM. Note that we provide the start and end offsets for mem pointers.
-    /// let mut vm = rbpf::EbpfVmFixedMbuff::new(Some(prog), 0x40, 0x50).unwrap();
-    ///
-    /// vm.jit_compile();
-    /// ```
-    #[cfg(not(windows))]
-    pub fn jit_compile(&mut self) -> Result<(), Error> {
-        let prog = match self.parent.prog { 
-            Some(prog) => prog,
-            None => Err(Error::new(ErrorKind::Other, "Error: No program set, call prog_set() to load one"))?,
-        };
-        self.parent.jit = Some(jit::compile(prog, &self.parent.helpers, true, true)?);
-        Ok(())
-    }
-
     /// Execute the previously JIT-compiled program, with the given packet data, in a manner very
     /// similar to `execute_program()`.
     ///
@@ -1270,36 +1206,6 @@ impl<'a> EbpfVmRaw<'a> {
         self.parent.execute_program(mem, &[])
     }
 
-    /// JIT-compile the loaded program. No argument required for this.
-    ///
-    /// If using helper functions, be sure to register them into the VM before calling this
-    /// function.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let prog = &[
-    ///     0x71, 0x11, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, // ldxb r1[0x04], r1
-    ///     0x07, 0x01, 0x00, 0x00, 0x00, 0x22, 0x00, 0x00, // add r1, 0x22
-    ///     0xbf, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov r0, r1
-    ///     0x95, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // exit
-    /// ];
-    ///
-    /// let mut vm = rbpf::EbpfVmRaw::new(Some(prog)).unwrap();
-    ///
-    /// vm.jit_compile();
-    /// ```
-    #[cfg(not(windows))]
-    pub fn jit_compile(&mut self) -> Result<(), Error> {
-        let prog = match self.parent.prog { 
-            Some(prog) => prog,
-            None => Err(Error::new(ErrorKind::Other,
-                        "Error: No program set, call prog_set() to load one"))?,
-        };
-        self.parent.jit = Some(jit::compile(prog, &self.parent.helpers, false, false)?);
-        Ok(())
-    }
-
     /// Execute the previously JIT-compiled program, with the given packet data, in a manner very
     /// similar to `execute_program()`.
     ///
@@ -1506,30 +1412,6 @@ impl<'a> EbpfVmNoData<'a> {
     /// ```
     pub fn register_helper(&mut self, key: u32, function: fn (u64, u64, u64, u64, u64) -> u64) -> Result<(), Error> {
         self.parent.register_helper(key, function)
-    }
-
-    /// JIT-compile the loaded program. No argument required for this.
-    ///
-    /// If using helper functions, be sure to register them into the VM before calling this
-    /// function.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let prog = &[
-    ///     0xb7, 0x00, 0x00, 0x00, 0x11, 0x22, 0x00, 0x00, // mov r0, 0x2211
-    ///     0xdc, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, // be16 r0
-    ///     0x95, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // exit
-    /// ];
-    ///
-    /// let mut vm = rbpf::EbpfVmNoData::new(Some(prog)).unwrap();
-    ///
-    ///
-    /// vm.jit_compile();
-    /// ```
-    #[cfg(not(windows))]
-    pub fn jit_compile(&mut self) -> Result<(), Error> {
-        self.parent.jit_compile()
     }
 
     /// Execute the program loaded, without providing pointers to any memory area whatsoever.
