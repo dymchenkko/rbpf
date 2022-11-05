@@ -19,7 +19,6 @@
 
 extern crate byteorder;
 extern crate combine;
-extern crate time;
 
 use std::u32;
 use std::collections::HashMap;

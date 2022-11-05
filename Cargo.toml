@@ -26,7 +26,6 @@ include = [
 
 combine = "2.5"
 libc = "0.2"
-time = "0.1"
 byteorder = "1.2"
 
 [dev-dependencies]
