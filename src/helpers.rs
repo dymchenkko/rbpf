@@ -16,7 +16,7 @@
 //! value. Hence some helpers have unused arguments, or return a 0 value in all cases, in order to
 //! respect this convention.
 
-extern crate libc;
+extern crate rand;
 
 use std::u64;
 
@@ -235,8 +235,9 @@ pub fn strcmp (arg1: u64, arg2: u64, arg3: u64, unused4: u64, unused5: u64) -> u
 #[allow(dead_code)]
 #[allow(unused_variables)]
 pub fn rand (min: u64, max: u64, unused3: u64, unused4: u64, unused5: u64) -> u64 {
+
     let mut n = unsafe {
-        (libc::rand() as u64).wrapping_shl(32) + libc::rand() as u64
+        (rand::random::<u64>()).wrapping_shl(32) + rand::random::<u64>()
     };
     if min < max {
         n = n % (max + 1 - min) + min;

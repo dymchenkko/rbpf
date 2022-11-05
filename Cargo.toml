@@ -27,6 +27,7 @@ include = [
 combine = "2.5"
 libc = "0.2"
 byteorder = "1.2"
+rand = {version = "0.8.5", efault-features = false}
 
 [dev-dependencies]
 
