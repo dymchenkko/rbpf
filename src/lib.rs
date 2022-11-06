@@ -320,8 +320,9 @@ impl<'a> EbpfVmMbuff<'a> {
             let mut do_jump = || {
                 insn_ptr = (insn_ptr as i16 + insn.off) as usize;
             };
-
-            match insn.opc {
+            if (insn.opc == ebpf::EXIT) { return Ok(reg[0]) }
+            reg[_dst] = insn.imm  as u32                                as u64;
+            /*match insn.opc {
 
                 // BPF_LD class
                 // LD_ABS_* and LD_IND_* are supposed to load pointer to data from metadata buffer.
@@ -607,7 +608,7 @@ impl<'a> EbpfVmMbuff<'a> {
                 ebpf::EXIT       => return Ok(reg[0]),
 
                 _                => unreachable!()
-            }
+            }*/
         }
 
         unreachable!()
