@@ -446,8 +446,14 @@ impl<'a> EbpfVmMbuff<'a> {
                 // TODO Check how overflow works in kernel. Should we &= U32MAX all src register value
                 // before we do the operation?
                 // Cf ((0x11 << 32) - (0x1 << 32)) as u32 VS ((0x11 << 32) as u32 - (0x1 << 32) as u32
-                ebpf::ADD32_IMM  => reg[_dst] = (reg[_dst] as i32).wrapping_add(insn.imm)         as u64, //((reg[_dst] & U32MAX) + insn.imm  as u64)     & U32MAX,
-                ebpf::ADD32_REG  => reg[_dst] = (reg[_dst] as i32).wrapping_add(reg[_src] as i32) as u64, //((reg[_dst] & U32MAX) + (reg[_src] & U32MAX)) & U32MAX,
+                ebpf::ADD32_IMM  => {
+                    eprintln!("ADD32_IMM is executing");
+                    reg[_dst] = (reg[_dst] as i32).wrapping_add(insn.imm)         as u64
+                }, //((reg[_dst] & U32MAX) + insn.imm  as u64)     & U32MAX,
+                ebpf::ADD32_REG  => {
+                    eprintln!("ADD32_REG is executing");
+                    reg[_dst] = (reg[_dst] as i32).wrapping_add(reg[_src] as i32) as u64
+                }, //((reg[_dst] & U32MAX) + (reg[_src] & U32MAX)) & U32MAX,
                 ebpf::SUB32_IMM  => reg[_dst] = (reg[_dst] as i32).wrapping_sub(insn.imm)         as u64,
                 ebpf::SUB32_REG  => reg[_dst] = (reg[_dst] as i32).wrapping_sub(reg[_src] as i32) as u64,
                 ebpf::MUL32_IMM  => reg[_dst] = (reg[_dst] as i32).wrapping_mul(insn.imm)         as u64,
