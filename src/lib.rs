@@ -480,7 +480,7 @@ impl<'a> EbpfVmMbuff<'a> {
                 ebpf::MOV32_IMM  =>   {
                     eprintln!("MOV32_IMM is executing");
                     reg[0] = 1;
-                    //reg[_dst] = insn.imm   as u32                                 as u64
+                    reg[_dst] = insn.imm   as u32                                 as u64
                 },
                 ebpf::MOV32_REG  =>   {
                     eprintln!("MOV32_REG is executing");
