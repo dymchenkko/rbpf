@@ -210,37 +210,4 @@ pub fn strcmp (arg1: u64, arg2: u64, arg3: u64, unused4: u64, unused5: u64) -> u
     }
 }
 
-// Some additional helpers
 
-/// Returns a random u64 value comprised between `min` and `max` values (inclusive). Arguments 3 to
-/// 5 are unused.
-///
-/// Relies on `rand()` function from libc, so `libc::srand()` should be called once before this
-/// helper is used.
-///
-/// # Examples
-///
-/// ```
-/// extern crate libc;
-/// extern crate rbpf;
-/// extern crate time;
-///
-/// unsafe {
-///     libc::srand(time::precise_time_ns() as u32)
-/// }
-///
-/// let n = rbpf::helpers::rand(3, 6, 0, 0, 0);
-/// assert!(3 <= n && n <= 6);
-/// ```
-#[allow(dead_code)]
-#[allow(unused_variables)]
-pub fn rand (min: u64, max: u64, unused3: u64, unused4: u64, unused5: u64) -> u64 {
-
-    let mut n = unsafe {
-        (rand::random::<u64>()).wrapping_shl(32) + rand::random::<u64>()
-    };
-    if min < max {
-        n = n % (max + 1 - min) + min;
-    };
-    n
-}
