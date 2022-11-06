@@ -305,6 +305,7 @@ impl<'a> EbpfVmMbuff<'a> {
             let _dst = insn.dst as usize;
             let _src = insn.src as usize;
             eprintln!("{:?}", insn);
+            eprintln!("{:?}", reg);
 
             let mut do_jump = || {
                 insn_ptr = (insn_ptr as i16 + insn.off) as usize;
