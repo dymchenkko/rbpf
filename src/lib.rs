@@ -270,15 +270,6 @@ impl<'a> EbpfVmMbuff<'a> {
     #[allow(unknown_lints)]
     #[allow(cyclomatic_complexity)]
     pub fn execute_program(&self, mem: &[u8], mbuff: &[u8]) -> Result<u64, Error> {
-        let mut reg: [u64;11] = [
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10486320
-        ];
-        let insn = ebpf::Insn { opc: 180, dst: 1, src: 0, off: 0, imm: 2 };
-            let _dst = insn.dst as usize;
-            let _src = insn.src as usize;
-        reg[_dst] = insn.imm   as u32                                 as u64;
-        eprintln!("Printing of reg: {:?}", reg);
-
 
         const U32MAX: u64 = u32::MAX as u64;
 
