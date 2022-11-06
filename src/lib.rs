@@ -471,8 +471,14 @@ impl<'a> EbpfVmMbuff<'a> {
                 ebpf::MOD32_REG  =>   reg[_dst] = (reg[_dst] as u32 % reg[_src]             as u32) as u64,
                 ebpf::XOR32_IMM  =>   reg[_dst] = (reg[_dst] as u32             ^ insn.imm  as u32) as u64,
                 ebpf::XOR32_REG  =>   reg[_dst] = (reg[_dst] as u32             ^ reg[_src] as u32) as u64,
-                ebpf::MOV32_IMM  =>   reg[_dst] = insn.imm   as u32                                 as u64,
-                ebpf::MOV32_REG  =>   reg[_dst] = (reg[_src] as u32)                                as u64,
+                ebpf::MOV32_IMM  =>   {
+                    eprintln!("MOV32_IMM is executing");
+                    reg[_dst] = insn.imm   as u32                                 as u64
+                },
+                ebpf::MOV32_REG  =>   {
+                    eprintln!("MOV32_REG is executing");
+                    reg[_dst] = (reg[_src] as u32)                                as u64
+                },
                 ebpf::ARSH32_IMM => { reg[_dst] = (reg[_dst] as i32).wrapping_shr(insn.imm  as u32) as u64; reg[_dst] &= U32MAX; },
                 ebpf::ARSH32_REG => { reg[_dst] = (reg[_dst] as i32).wrapping_shr(reg[_src] as u32) as u64; reg[_dst] &= U32MAX; },
                 ebpf::LE         => {
