@@ -291,12 +291,12 @@ impl<'a> EbpfVmMbuff<'a> {
             reg[1] = mem.as_ptr() as u64;
         }
 
-        let check_mem_load = | addr: u64, len: usize, insn_ptr: usize | {
+        /*let check_mem_load = | addr: u64, len: usize, insn_ptr: usize | {
             EbpfVmMbuff::check_mem(addr, len, "load", insn_ptr, mbuff, mem, &stack)
         };
         let check_mem_store = | addr: u64, len: usize, insn_ptr: usize | {
             EbpfVmMbuff::check_mem(addr, len, "store", insn_ptr, mbuff, mem, &stack)
-        };
+        };*/
 
         // Loop on instructions
         let mut insn_ptr:usize = 0;
@@ -304,13 +304,13 @@ impl<'a> EbpfVmMbuff<'a> {
             let insn = ebpf::get_insn(prog, insn_ptr);
             insn_ptr += 1;
             let _dst = insn.dst as usize;
-            let _src = insn.src as usize;
+            //let _src = insn.src as usize;
             eprintln!("{:?}", insn);
             eprintln!("{:?}", reg);
 
-            let mut do_jump = || {
+            /*let mut do_jump = || {
                 insn_ptr = (insn_ptr as i16 + insn.off) as usize;
-            };
+            };*/
             if (insn.opc == ebpf::EXIT) { return Ok(reg[0]) }
             reg[_dst] = insn.imm  as u32                                as u64;
             /*match insn.opc {
@@ -602,6 +602,34 @@ impl<'a> EbpfVmMbuff<'a> {
             }*/
         }
 
+        unreachable!()
+    }
+
+    #[allow(unknown_lints)]
+    #[allow(cyclomatic_complexity)]
+    pub fn test_execute_program(&self, mem: &[u8], mbuff: &[u8]) -> Result<u64, Error> {
+        
+        let prog = match self.prog { 
+            Some(prog) => prog,
+            None => Err(Error::new(ErrorKind::Other,
+                        "Error: No program set, call prog_set() to load one"))?,
+        };
+        let stack = vec![0u8;ebpf::STACK_SIZE];
+
+        let mut reg: [u64;11] = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, stack.as_ptr() as u64 + stack.len() as u64
+        ];
+
+        let mut insn_ptr:usize = 0;
+        while insn_ptr * ebpf::INSN_SIZE < prog.len() {
+            let insn = ebpf::get_insn(prog, insn_ptr);
+            insn_ptr += 1;
+            let _dst = insn.dst as usize;
+            eprintln!("{:?}", insn);
+            eprintln!("{:?}", reg);
+            if (insn.opc == ebpf::EXIT) { return Ok(reg[0]) }
+            reg[_dst] = insn.imm  as u32                                as u64;
+        }
         unreachable!()
     }
 
