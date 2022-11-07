@@ -1250,6 +1250,9 @@ impl<'a> EbpfVmRaw<'a> {
         self.parent.execute_program(mem, &[])
     }
 
+    pub fn test_execute_program(&self, mem: &'a mut [u8]) -> Result<u64, Error> {
+        self.parent.test_execute_program(mem, &[])
+    }
     /// Execute the previously JIT-compiled program, with the given packet data, in a manner very
     /// similar to `execute_program()`.
     ///
