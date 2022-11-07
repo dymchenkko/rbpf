@@ -1481,6 +1481,9 @@ impl<'a> EbpfVmNoData<'a> {
     pub fn execute_program(&self) -> Result<u64, Error> {
         self.parent.execute_program(&mut [])
     }
+    pub fn test_execute_program(&self) -> Result<u64, Error> {
+        self.parent.test_execute_program(&mut [])
+    }
 
     /// Execute the previously JIT-compiled program, without providing pointers to any memory area
     /// whatsoever, in a manner very similar to `execute_program()`.
